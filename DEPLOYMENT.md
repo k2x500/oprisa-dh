@@ -60,12 +60,7 @@ sudo apt-get install -y docker.io docker-compose-plugin
 git clone <YOUR_GITHUB_URL>
 cd dashboard
 
-# 3. Create the database CSV file on the host if it doesn't exist
-# (This ensures Docker compose mounts a file, not a directory)
-touch crm_state.csv
-echo "UUID;workStarted;scheduleAcceptance;step3Outcome;notes" > crm_state.csv
-
-# 4. Start the application in the background (detached mode)
+# 3. Start the application in the background (detached mode)
 sudo docker compose up --build -d
 ```
 

@@ -6,7 +6,4 @@ services:
     container_name: crm-dashboard-app
     ports:
       - "8085:8085"
-    volumes:
-      # Map the host crm_state.csv to keep your CRM changes persistent across container updates
-      - ./crm_state.csv:/app/crm_state.csv
     restart: always

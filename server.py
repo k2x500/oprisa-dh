@@ -7,90 +7,107 @@ import csv
 import json
 
 PORT = 8085
-CSV_FILE = 'crm_state.csv'
-CSV_HEADER = ['UUID', 'workStarted', 'scheduleAcceptance', 'step3Outcome', 'notes']
+import urllib.request
+
+SUPABASE_URL = "https://ecgeikpxjjcgqpkwglhf.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZ2Vpa3B4ampjZ3Fwa3dnbGhmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDM0MDM1MiwiZXhwIjoyMDk1OTE2MzUyfQ.ZoURTsbPD21MPNFRSr-n5C0rK4eYGPNkdDBqg6kDEM0"
 
 def read_crm_states():
     states = {}
-    if not os.path.exists(CSV_FILE):
-        # Create CSV file with headers if it does not exist
-        try:
-            with open(CSV_FILE, 'w', encoding='utf-8', newline='') as f:
-                writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                writer.writerow(CSV_HEADER)
-        except Exception as e:
-            print(f"Failed to initialize CSV file: {e}")
-        return states
-        
+    url = f"{SUPABASE_URL}/rest/v1/crm_states"
+    req = urllib.request.Request(url, headers={
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    })
     try:
-        with open(CSV_FILE, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=';', quotechar='"')
-            header = next(reader, None) # Skip header row
-            for row in reader:
-                if len(row) >= 5:
-                    uuid_val = row[0]
-                    work_started = row[1] == 'true'
-                    schedule_acceptance = row[2]
-                    step3_outcome = row[3] if row[3] != 'undefined' and row[3] != '' else None
-                    notes_val = row[4]
-                    
-                    states[uuid_val] = {
-                        "workStarted": work_started,
-                        "scheduleAcceptance": schedule_acceptance,
-                        "step3Outcome": step3_outcome,
-                        "notes": notes_val
-                    }
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            for row in data:
+                uuid_val = row.get('uuid')
+                work_started = row.get('work_started', False)
+                schedule_acceptance = row.get('schedule_acceptance', 'pending')
+                step3_outcome = row.get('step3_outcome')
+                if step3_outcome == 'undefined' or step3_outcome == '':
+                    step3_outcome = None
+                notes_val = row.get('notes', '')
+                
+                states[uuid_val] = {
+                    "workStarted": work_started,
+                    "scheduleAcceptance": schedule_acceptance,
+                    "step3Outcome": step3_outcome,
+                    "notes": notes_val
+                }
     except Exception as e:
-        print(f"Error reading crm_state.csv: {e}")
-        
+        print(f"Error fetching states from Supabase: {e}")
     return states
 
 def update_crm_state(uuid, state):
-    # Ensure file exists and read current states
-    read_crm_states()
+    # Check if row exists in Supabase
+    url = f"{SUPABASE_URL}/rest/v1/crm_states?uuid=eq.{uuid}"
+    req = urllib.request.Request(url, headers={
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    })
     
-    rows = []
-    updated = False
-    
+    row_exists = False
     try:
-        # Read all existing rows
-        with open(CSV_FILE, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=';', quotechar='"')
-            header = next(reader, None)
-            for row in reader:
-                if len(row) >= 5:
-                    if row[0] == uuid:
-                        # Update existing row with new state data
-                        work_started_str = 'true' if state.get('workStarted') else 'false'
-                        schedule_acceptance_str = state.get('scheduleAcceptance', 'pending')
-                        step3_outcome_str = state.get('step3Outcome')
-                        if step3_outcome_str is None:
-                            step3_outcome_str = 'undefined'
-                        notes_str = state.get('notes', '')
-                        
-                        rows.append([uuid, work_started_str, schedule_acceptance_str, step3_outcome_str, notes_str])
-                        updated = True
-                    else:
-                        rows.append(row)
-                        
-        if not updated:
-            # Append new state row if UUID was not found
-            work_started_str = 'true' if state.get('workStarted') else 'false'
-            schedule_acceptance_str = state.get('scheduleAcceptance', 'pending')
-            step3_outcome_str = state.get('step3Outcome')
-            if step3_outcome_str is None:
-                step3_outcome_str = 'undefined'
-            notes_str = state.get('notes', '')
-            rows.append([uuid, work_started_str, schedule_acceptance_str, step3_outcome_str, notes_str])
-            
-        # Atomic rewrite back to crm_state.csv
-        with open(CSV_FILE, 'w', encoding='utf-8', newline='') as f:
-            writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(CSV_HEADER)
-            writer.writerows(rows)
-            
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            if len(data) > 0:
+                row_exists = True
     except Exception as e:
-        print(f"Error updating crm_state.csv: {e}")
+        print(f"Error checking row existence in Supabase: {e}")
+        row_exists = False
+
+    work_started = state.get('workStarted', False)
+    schedule_acceptance = state.get('scheduleAcceptance', 'pending')
+    step3_outcome = state.get('step3Outcome')
+    if step3_outcome is None:
+        step3_outcome = 'undefined'
+    notes_val = state.get('notes', '')
+
+    payload = {
+        "uuid": uuid,
+        "work_started": work_started,
+        "schedule_acceptance": schedule_acceptance,
+        "step3_outcome": step3_outcome,
+        "notes": notes_val
+    }
+    
+    payload_data = json.dumps(payload).encode('utf-8')
+    
+    if row_exists:
+        # Perform PATCH request (update)
+        patch_url = f"{SUPABASE_URL}/rest/v1/crm_states?uuid=eq.{uuid}"
+        write_req = urllib.request.Request(
+            patch_url,
+            data=payload_data,
+            headers={
+                "apikey": SUPABASE_KEY,
+                "Authorization": f"Bearer {SUPABASE_KEY}",
+                "Content-Type": "application/json"
+            },
+            method="PATCH"
+        )
+    else:
+        # Perform POST request (insert)
+        post_url = f"{SUPABASE_URL}/rest/v1/crm_states"
+        write_req = urllib.request.Request(
+            post_url,
+            data=payload_data,
+            headers={
+                "apikey": SUPABASE_KEY,
+                "Authorization": f"Bearer {SUPABASE_KEY}",
+                "Content-Type": "application/json"
+            },
+            method="POST"
+        )
+        
+    try:
+        with urllib.request.urlopen(write_req) as response:
+            pass
+    except Exception as e:
+        print(f"Error saving to Supabase: {e}")
 
 class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
