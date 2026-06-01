@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestiune Performanță Driveri - Oprisa GmbH Logistics</title>
+    
+    <!-- Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Se încarcă baza de date (data2.csv)...</div>
+    </div>
+
+    <div class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <span class="logo-icon"><i class="fa-solid fa-bolt"></i></span>
+                <span class="logo-text" data-i18n="logoText">OPRISA GMBH</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a class="nav-item active" data-tab="view-overview">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span data-i18n="tabDashboard">Dashboard</span>
+                </a>
+                <a class="nav-item" data-tab="view-directory">
+                    <i class="fa-solid fa-users"></i>
+                    <span data-i18n="tabDatabase">Bază de Date</span>
+                </a>
+                <a class="nav-item" data-tab="view-roadmap">
+                    <i class="fa-solid fa-user-xmark" style="color: var(--color-danger)"></i>
+                    <span style="font-weight: 700; color: #ff5252;" data-i18n="tabNonprofit">Driveri Non-Profit</span>
+                </a>
+            </nav>
+            
+            <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+                <span data-i18n="footerText">© 2026 Oprisa Logistics</span>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="main-content">
+            
+            <!-- Page Header -->
+            <header>
+                <div>
+                    <h1 class="page-title" data-i18n="pageTitle">Gestiune Performanță</h1>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;" data-i18n="pageSubtitle">Asistență și monitorizare manuală.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <!-- Premium Flag Language Switcher Toggle -->
+                    <div class="lang-toggle-container">
+                        <button class="lang-btn" id="lang-btn-ro" onclick="setLanguage('ro')">
+                            <span class="flag-icon">🇷🇴</span> RO
+                        </button>
+                        <button class="lang-btn" id="lang-btn-en" onclick="setLanguage('en')">
+                            <span class="flag-icon">🇬🇧</span> EN
+                        </button>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; font-size: 0.8rem; background-color: rgba(255,255,255,0.02); padding: 0.5rem 1rem; border-radius: var(--border-radius-sm); border: 1px solid var(--card-border);">
+                        <span style="color: var(--text-muted)" data-i18n="activeModuleLabel">Modul Activ:</span>
+                        <span style="font-weight: 700; color: var(--color-secondary);" data-i18n="activeModuleVal">Actualizare Manuală CRM</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ================= VIEW 1: STATS & SUMMARY (PREZENTARE GENERALA) ================= -->
+            <div class="tab-view active" id="view-overview">
+                
+                <!-- Quick Stats Row -->
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span data-i18n="statTotalDrivers">Total Driveri Înregistrați</span>
+                            <i class="fa-solid fa-users text-primary"></i>
+                        </div>
+                        <div class="stat-value" id="stat-total-drivers">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span data-i18n="statNonprofit">Non-Profit</span>
+                            <i class="fa-solid fa-user-xmark" style="color: var(--color-danger)"></i>
+                        </div>
+                        <div class="stat-value" id="stat-non-profit-count" style="color: var(--color-danger);">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span data-i18n="statContacted">Contactați</span>
+                            <i class="fa-solid fa-calendar-check" style="color: var(--color-success)"></i>
+                        </div>
+                        <div class="stat-value" id="stat-contacted-count" style="color: var(--color-success);">-</div>
+                    </div>
+                </section>
+
+                <div class="dashboard-grid" style="grid-template-columns: 1fr;">
+                    
+                    <!-- Left: Traditional City Profitability Table (Instead of a chart!) -->
+                    <div class="content-card">
+                        <div class="card-title">
+                            <i class="fa-solid fa-list-check" style="color: var(--color-danger)"></i>
+                            <span data-i18n="cityTableTitle">Pierderi pe Orașe</span>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: -0.5rem;" data-i18n="cityTableSubtitle">Orașe cu cele mai mari pierderi cumulative.</p>
+                        
+                        <div class="table-container" style="max-height: 480px;">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="colCity">Oraș</th>
+                                        <th data-i18n="colDriversCount">Nr. Driveri</th>
+                                        <th data-i18n="colTotalLoss">Pierderi Totale</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="city-profitability-tbody">
+                                    <!-- Populated in app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ================= VIEW 2: MASTER DIRECTORY (ALL DRIVERS) ================= -->
+            <div class="tab-view" id="view-directory">
+                
+                <!-- Filters panel -->
+                <div class="filters-panel">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-driver" data-i18n="searchPlaceholder" placeholder="Caută după Nume, Partner Number (PN) sau UUID...">
+                    </div>
+                    
+                    <div class="filter-select" style="max-width: 200px;">
+                        <select id="filter-city">
+                            <option value="all" data-i18n="filterAllCities">Toate Orașele</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-select" style="max-width: 240px;">
+                        <select id="filter-profitability">
+                            <option value="all" data-i18n="filterAllStatuses">Toate Statusurile</option>
+                            <option value="Profitabil" data-i18n="filterProfitableOnly">Doar Profitabili</option>
+                            <option value="Pierdere" data-i18n="filterLossOnly">Doar Pierdere</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- Column Selector Panel -->
+                <div class="content-card" style="margin-top: -0.5rem; margin-bottom: 1.25rem; padding: 0.85rem 1.15rem; background-color: #ffffff; border: 1px solid var(--card-border);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;" onclick="toggleColumnsPanel()">
+                        <span style="font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.45rem;">
+                            <i class="fa-solid fa-table-columns" style="color: var(--color-primary)"></i> <span data-i18n="colSelectorTitle">Selectare Coloane Bază de Date</span>
+                        </span>
+                        <span id="columns-toggle-chevron" style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.2s; transform: rotate(180deg);"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div id="columns-checkbox-container" style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.75rem; border-top: 1px solid var(--card-border); padding-top: 0.75rem;">
+                        <!-- Generated Dynamically in app.js -->
+                    </div>
+                </div>
+
+                <!-- Full-Width Driver Table -->
+                <div class="content-card" style="padding: 1rem; overflow: hidden; margin-bottom: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem;">
+                        <span class="card-title" id="filter-count">Afișare: - din - driveri</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);"><i class="fa-solid fa-circle-info"></i> <span data-i18n="rowClickInfo">Faceți clic pe orice rând pentru a deschide profilul special în ecran complet</span></span>
+                    </div>
+                    <div class="table-container" style="max-height: 520px;">
+                        <table class="premium-table">
+                            <thead>
+                                <tr id="drivers-table-header-row">
+                                    <!-- Populated Dynamically in app.js -->
+                                </tr>
+                            </thead>
+                            <tbody id="drivers-table-body">
+                                <!-- Populated in app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW 3: NON-PROFIT DIRECTORY QUEUE ================= -->
+            <div class="tab-view" id="view-roadmap">
+                
+                <div class="custom-alert info" style="margin-bottom: 1.5rem;">
+                    <i class="fa-solid fa-circle-info" style="font-size: 1.2rem"></i>
+                    <div id="t-guide-desc" data-i18n="guideDesc">
+                        <strong>Queue Asistență Non-Profit:</strong> Această secțiune afișează exclusiv driverii aflați în <em>Pierdere</em> conform bazei de date. Faceți clic pe un card pentru a deschide profilul special în ecran complet.
+                    </div>
+                </div>
+
+                <div class="content-card" style="gap: 1rem; margin-bottom: 0; min-height: 480px; overflow-y: auto;">
+                    <div class="card-title">
+                        <i class="fa-solid fa-address-book" style="color: var(--color-secondary)"></i>
+                        <span data-i18n="lossDriversTitle">Driveri în Pierdere</span>
+                    </div>
+
+                    <!-- Sub-tabs for categorization inside Non-Profit View -->
+                    <div class="roadmap-subtabs" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <button class="subtab-btn active" id="subtab-pending" onclick="setRoadmapSubtab('pending')" data-i18n="subtabPending">De Contactat</button>
+                        <button class="subtab-btn" id="subtab-progress" onclick="setRoadmapSubtab('progress')" data-i18n="subtabProgress">Acceptat</button>
+                        <button class="subtab-btn" id="subtab-no-answer" onclick="setRoadmapSubtab('no-answer')" data-i18n="subtabNoAnswer">Fără răspuns</button>
+                        <button class="subtab-btn" id="subtab-closed" onclick="setRoadmapSubtab('closed')" data-i18n="subtabClosed">Refuzat</button>
+                        <button class="subtab-btn" id="subtab-completed" onclick="setRoadmapSubtab('completed')" data-i18n="subtabCompleted">Optimizat</button>
+                        <button class="subtab-btn" id="subtab-recontact" onclick="setRoadmapSubtab('recontact')" data-i18n="subtabRecontact">De recontactat</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.25rem;" id="roadmap-drivers-list">
+                        <!-- Populated in app.js -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- FULL-SCREEN GLASSMORPHIC PROFILE MODAL -->
+    <div class="modal-overlay" id="driver-profile-modal">
+        <div class="modal-content">
+            <button class="close-modal-btn" id="close-profile-modal-btn" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-profile-grid" id="modal-profile-content">
+                <!-- Injected dynamically in app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
