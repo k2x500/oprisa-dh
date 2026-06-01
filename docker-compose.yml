@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  crm-dashboard:
+    build: .
+    container_name: crm-dashboard-app
+    ports:
+      - "8000:8000"
+    volumes:
+      # Map the host crm_state.csv to keep your CRM changes persistent across container updates
+      - ./crm_state.csv:/app/crm_state.csv
+    restart: always
