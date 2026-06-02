@@ -6,7 +6,7 @@ import os
 import csv
 import json
 
-PORT = 8085
+PORT = 8080
 import urllib.request
 
 SUPABASE_URL = "https://ecgeikpxjjcgqpkwglhf.supabase.co"
