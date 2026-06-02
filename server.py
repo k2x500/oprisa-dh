@@ -109,6 +109,18 @@ def update_crm_state(uuid, state):
     except Exception as e:
         print(f"Error saving to Supabase: {e}")
 
+class ThreadingTCPServer(socketserver.ThreadingTCPServer):
+    allow_reuse_address = True
+    
+    def handle_error(self, request, client_address):
+        # Gracefully capture and suppress standard socket connection resets or abrupt browser closes
+        exc_type, exc_value, _ = sys.exc_info()
+        if exc_type in (ConnectionResetError, BrokenPipeError, ConnectionAbortedError) or (isinstance(exc_value, OSError) and exc_value.errno in (32, 104, 10054)):
+            print(f"Client disconnected abruptly: {client_address}")
+        else:
+            # Let standard socketserver handler print traces for real server errors
+            super().handle_error(request, client_address)
+
 class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         # Prevent caching for live application data
@@ -170,9 +182,8 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
 
 def run_server():
-    socketserver.TCPServer.allow_reuse_address = True
     try:
-        with socketserver.TCPServer(("", PORT), CORSHTTPRequestHandler) as httpd:
+        with ThreadingTCPServer(("", PORT), CORSHTTPRequestHandler) as httpd:
             print(f"Dashboard development server started successfully!")
             print(f"=================================================")
             print(f"Serving files locally at: http://localhost:{PORT}")
