@@ -36,7 +36,7 @@ git push -u origin main
 Since you already have a Google Cloud VM and want to run it live via Docker, follow these steps to deploy:
 
 ### 1. Open the Firewall Port in Google Cloud
-You need to allow external web traffic to access port `8080` where the dashboard is served.
+You need to allow external web traffic to access port `8051` where the dashboard is served.
 1. Go to the **Google Cloud Console**.
 2. Navigate to **VPC Network** > **Firewall**.
 3. Click **Create Firewall Rule**.
@@ -44,7 +44,7 @@ You need to allow external web traffic to access port `8080` where the dashboard
    - **Name**: `allow-crm-dashboard`
    - **Targets**: `All instances in the network` (or apply a specific network tag if you use tags)
    - **Source IPv4 ranges**: `0.0.0.0/0` (allows access from anywhere)
-   - **Protocols and ports**: Under **Specified protocols and ports**, check **TCP** and enter `8080`.
+   - **Protocols and ports**: Under **Specified protocols and ports**, check **TCP** and enter `8051`.
 5. Click **Create**.
 
 ### 2. Deploy on your VM
@@ -72,7 +72,7 @@ Once the docker container starts:
    ```
 2. Your dashboard is now **LIVE** and accessible at:
    ```text
-   http://<YOUR_VM_EXTERNAL_IP>:8080/
+   http://<YOUR_VM_EXTERNAL_IP>:8051/
    ```
 
 ---
